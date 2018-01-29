@@ -3,6 +3,7 @@
 //CSC 346 Homework 02
 
 import java.sql.*;
+import java.util.Scanner;
 
 public class Main {
     static Connection conn;
@@ -10,17 +11,27 @@ public class Main {
     static Statement stmt;
 
     public static void main(String[] args) {
+        Scanner scan = new Scanner(System.in);
         String host = "jdbc:mysql://turing.cs.missouriwestern.edu:3306/misc";
         String user = "csc254";
         String password = "age126";
-        String queryString = "";
+
+        System.out.println("Enter in a ZIP code and a radius in miles.");
+        System.out.print("ZIP: ");
+        int zipCode = scan.nextInt();
+        System.out.print("Diameter: ");
+        int diameter = scan.nextInt();
+
+        String queryString = "SELECT city, region, country, latitude, longitude " +
+                "FROM cities " +
+                "WHERE longitude < 0.0 LIMIT 25";
 
         try{
             conn = DriverManager.getConnection(host,user,password);
             if(conn == null){
-                System.out.println("Connection failed");
+                System.out.println("Connection to database failed");
             }else{
-                System.out.println("Connection successful");
+                System.out.println("Connection to database successful");
             }
             stmt = conn.createStatement();//prepares packet of information to be sent
             rs = stmt.executeQuery(queryString);
