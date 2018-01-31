@@ -7,8 +7,14 @@ import java.util.Scanner;
 
 public class Main {
     static Connection conn;
-    static ResultSet rs;
-    static Statement stmt;
+    static ResultSet rsp;//resultset for places variables
+    static ResultSet rsd;//resultset for distance variables
+    static Statement stmt, stmt2;
+
+    //to do list:
+    //use distanceKM and distanceMiles to return those values in a string for each place,
+    //what to do with radius variable....? -> distance methods
+    //BETWEEN 0 and distance filter on sql query
 
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
@@ -18,13 +24,21 @@ public class Main {
 
         System.out.println("Enter in a ZIP code and a radius in miles.");
         System.out.print("ZIP: ");
-        int zipCode = scan.nextInt();
-        System.out.print("Diameter: ");
-        int diameter = scan.nextInt();
+        int inputZipCode = scan.nextInt();
+        System.out.print("Radius: ");
+        int radius = scan.nextInt();
 
-        String queryString = "SELECT city, region, country, latitude, longitude " +
-                "FROM cities " +
-                "WHERE longitude < 0.0 LIMIT 25";
+        int primarylat, primarylon;
+
+        String queryStringPlaces = "SELECT DISTINCT city, state_prefix, country, zip_code,lat, lon, population, housingunits " +
+                "FROM zips " +
+                "WHERE zip_code LIKE "+inputZipCode;
+        String queryStringDistances = "SELECT DISTINCT lat, lon "+
+                "FROM zips " +
+                "WHERE zip_code LIKE "+inputZipCode+
+                " LIMIT 1";//primary lat and long
+        //String queryStringPopulation = "";
+
 
         try{
             conn = DriverManager.getConnection(host,user,password);
@@ -34,20 +48,31 @@ public class Main {
                 System.out.println("Connection to database successful");
             }
             stmt = conn.createStatement();//prepares packet of information to be sent
-            rs = stmt.executeQuery(queryString);
+            stmt2 = conn.createStatement();
+            rsp = stmt.executeQuery(queryStringPlaces);
+            rsd = stmt2.executeQuery(queryStringDistances);
 
-            ResultSetMetaData rsMetaData = rs.getMetaData();
+            ResultSetMetaData rsMetaData = rsp.getMetaData();
+            ResultSetMetaData rsMetaDataDistance = rsd.getMetaData();
 
-            while(rs.next()){
-                //returns null when it hits the EOF (for if you use it in another method)
-                //this shows how it is linked to the result set
-                String country = rs.getString("country");
-                String name = rs.getString("city");//name = city in database
-                String region = rs.getString("region");
-                double lat = rs.getDouble("latitude");
-                double lon = rs.getDouble("longitude");
-                place place = new place(name, region, country, lat, lon);//the placeholder "place" Object
-                System.out.println(place);
+            while(rsd.next()) {//outer loop check for rsd value (only 1 value since LIMIT 1 sql code)
+                while (rsp.next()) {//inner loop check for all rsp values (until EOF)
+                    //returns null when it hits the EOF
+                    String country = rsp.getString("country");
+                    String name = rsp.getString("city");//name = city in database
+                    String state = rsp.getString("state_prefix");
+                    double lat2 = rsp.getDouble("lat");
+                    double lon2 = rsp.getDouble("lon");
+                    double lat = rsd.getDouble("lat");//primary lat
+                    double lon = rsd.getDouble("lon");//primary lon
+                    int zipcode = rsp.getInt("zip_code");
+                    int housingunits = rsp.getInt("housingunits");
+                    int population = rsp.getInt("population");
+                    double distanceKM = place.distanceKM(lat, lon, lat2, lon2);
+                    double distanceMiles = place.distanceMiles(lat, lon, lat2, lon2);
+                    place place = new place(name, state, zipcode, country, housingunits, population, distanceKM, distanceMiles);//the placeholder "place" Object
+                    System.out.println(place);//prints out all places with toString
+                }
             }
 
             conn.close();
