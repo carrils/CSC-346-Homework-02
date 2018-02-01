@@ -27,7 +27,7 @@ public class place {
     }
 
     //constructor
-    public place(String name, String state, int zipcode, String country, int housingunits, int population, double distanceFromOriginKM, double distanceFromOriginMiles) {
+    public place(String name, String state, int housingunits, int population, double distanceFromOriginKM, double distanceFromOriginMiles) {
         this.name = name;
         this.state = state;
         this.country = country;
@@ -113,11 +113,10 @@ public class place {
 
     @Override
     public String toString() {
-        return name + '\'' + state + '\'' +
-                zipcode +  '\'' + country +
-                '\'' + distanceFromOriginKM +  '\''  +
-                distanceFromOriginMiles+   '\''   + housingunits +
-                '\''   + population +   '\'';
+        return "Name: "+'\''+name+ '\'' + ", State: "+'\''+state + '\''+
+                ", Housing Units: "+ housingunits  + ", Population: "+
+                population +", Distance (km): " + distanceFromOriginKM
+                +", Distance (miles): "+ distanceFromOriginMiles;
     }
 
     @Override
