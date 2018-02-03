@@ -9,11 +9,13 @@ public class Main {
     static Connection conn;
     static ResultSet rsp;//resultset for places variables
     static ResultSet rsd;//resultset for distance variables
-    static Statement stmt, stmt2;
+    static ResultSet rshu;//resultset for housing unit variables
+    static Statement stmt, stmt2, stmt3;
 
     //to do list:
-    //implement methods for (km -> miles) conversion and (miles -> km)
+    //solve multiple populations from same place
     //solve multiple zipcodes returning back same place problem
+    //fix while loop structure to find all housing unit values then match those up to the correct place.
 
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
@@ -28,12 +30,17 @@ public class Main {
         int radius = scan.nextInt();
 
         //this string should be all zips in an area
-        String queryStringPlaces = "SELECT DISTINCT city, state_prefix, population, housingunits, lat, lon" +
-                " FROM zips ORDER BY state_prefix";
+        String queryStringPlaces = "SELECT DISTINCT city, zipcode,state, lat, `long`, estimatedpopulation" +
+                " FROM zips2  WHERE locationtype LIKE 'PRIMARY' " +
+                "ORDER BY city";
 
         //this string is only the primary lat and long
-        String queryStringDistances = "SELECT DISTINCT lat, lon "+
-                "FROM zips WHERE zip_code LIKE "+inputZipCode+" LIMIT 1";
+        String queryStringDistances = "SELECT DISTINCT lat, `long` "+
+                "FROM zips2 WHERE zipcode LIKE "+inputZipCode+" LIMIT 1";
+
+        //this string is used for housing units info
+        String queryStringHousing = "SELECT DISTINCT housingunits, city, state_prefix, zip_code" +
+                " FROM zips ORDER BY city";
 
         try{
             conn = DriverManager.getConnection(host,user,password);
@@ -44,35 +51,47 @@ public class Main {
             }
             stmt = conn.createStatement();//prepares packet of information to be sent
             stmt2 = conn.createStatement();
+            stmt3 = conn.createStatement();
+
             rsp = stmt.executeQuery(queryStringPlaces);
             rsd = stmt2.executeQuery(queryStringDistances);
+            rshu = stmt3.executeQuery(queryStringHousing);
 
             ResultSetMetaData rsMetaData = rsp.getMetaData();
             ResultSetMetaData rsMetaDataDistance = rsd.getMetaData();
 
-            while(rsd.next()) {//outer loop check for rsd value (only 1 value since LIMIT 1 sql code)
-                while (rsp.next()) {//inner loop check for all rsp values (until EOF)
-                    //returns null when it hits the EOF
-                    String name = rsp.getString("city");//name = city in database
-                    String state = rsp.getString("state_prefix");
+            while(rsd.next()) {
 
-                    double lat = rsd.getDouble("lat");//primary lat
-                    double lon = rsd.getDouble("lon");//primary lon
-                    double lat2 = rsp.getDouble("lat");//end lat
-                    double lon2 = rsp.getDouble("lon");//end lon
+                //this first while works because there is only one record in rsd then it moves onto
+                //the next while loop, but rshu has more than one record, so it is only getting the first
+                //before moving into rsp. find how to transfer back control to rshu after 1 loop of rsp.
 
-                    int housingunits = rsp.getInt("housingunits");
-                    int population = rsp.getInt("population");
+                while (rshu.next()){//only getting the first value from rshu resultset and moving on
 
-                    double distanceKM = place.distanceKM(lat, lon, lat2, lon2);
-                    double distanceMiles = place.distanceMiles(lat, lon, lat2, lon2);
+                    while (rsp.next()) {//inner loop check for all rsp values (until EOF)
+                        String name = rsp.getString("city");
+                        String state = rsp.getString("state");
+                        double lat2 = rsp.getDouble("lat");//end lat
+                        double lon2 = rsp.getDouble("long");//end lon
+                        int zip = rsp.getInt("zipcode");
+                        int population = rsp.getInt("estimatedpopulation");
 
-                    //return places within the radius
-                    if(distanceMiles <= radius) {
-                        place place = new place(name, state, housingunits, population, distanceKM, distanceMiles);//the placeholder "place" Object
-                        System.out.println(place);//prints out all places with toString
+                        double lat = rsd.getDouble("lat");//primary lat
+                        double lon = rsd.getDouble("long");//primary lon
+
+                        int housingunits = rshu.getInt("housingunits");//value needed
+                        int housingzip = rshu.getInt("zip_code");//for matching purposes only
+
+                        double distanceKM = place.distanceKM(lat, lon, lat2, lon2);
+                        double distanceMiles = place.distanceMiles(lat, lon, lat2, lon2);
+
+                        //return places within the radius, this if goes into a loop of some kind that matches the zips
+                        if (distanceMiles <= radius) {
+                            place place = new place(name, zip,state, housingunits, population, distanceKM, distanceMiles);//the placeholder "place" Object
+                            System.out.println(place);//prints out all places with toString
+                        }
+
                     }
-
                 }
             }
 
