@@ -15,7 +15,7 @@ public class Main {
     //to do list:
     //solve multiple populations from same place
     //solve multiple zipcodes returning back same place problem
-    //fix while loop structure to find all housing unit values then match those up to the correct place.
+    //match housing units to their correct place.
 
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
@@ -60,15 +60,11 @@ public class Main {
             ResultSetMetaData rsMetaData = rsp.getMetaData();
             ResultSetMetaData rsMetaDataDistance = rsd.getMetaData();
 
-            while(rsd.next()) {
-
-                //this first while works because there is only one record in rsd then it moves onto
-                //the next while loop, but rshu has more than one record, so it is only getting the first
-                //before moving into rsp. find how to transfer back control to rshu after 1 loop of rsp.
-
-                while (rshu.next()){//only getting the first value from rshu resultset and moving on
-
-                    while (rsp.next()) {//inner loop check for all rsp values (until EOF)
+            while(rsd.next()) {//primary lat and lon found here
+                while (rshu.next()){//housing units found here
+                    if (rsp.next()) {//rest of data found here
+                        //'IF' is important here because it cycles through this code once then gets the next
+                        //rshu resultset values (housing units), 'WHILE' does not. (this is the fruit of hours of being stumped)
                         String name = rsp.getString("city");
                         String state = rsp.getString("state");
                         double lat2 = rsp.getDouble("lat");//end lat
