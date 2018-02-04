@@ -15,9 +15,16 @@ public class Main {
     //to do list:
     //solve multiple populations from same place
     //solve multiple zipcodes returning back same place problem
+
+    //The 'Good enough' Corner:
     //match housing units to their correct place.
+    //                  -> is this one even possible because theoretically they are never going to match
 
     public static void main(String[] args) {
+        String previousName = "";
+        int previousPopulation = 0;
+        int previousZip = 0;
+
         Scanner scan = new Scanner(System.in);
         String host = "jdbc:mysql://turing.cs.missouriwestern.edu:3306/misc";
         String user = "csc254";
@@ -35,18 +42,18 @@ public class Main {
                 "ORDER BY city";
 
         //this string is only the primary lat and long
-        String queryStringDistances = "SELECT DISTINCT lat, `long` "+
-                "FROM zips2 WHERE zipcode LIKE "+inputZipCode+" LIMIT 1";
+        String queryStringDistances = "SELECT DISTINCT lat, `long` " +
+                "FROM zips2 WHERE zipcode LIKE " + inputZipCode + " LIMIT 1";
 
         //this string is used for housing units info
         String queryStringHousing = "SELECT DISTINCT housingunits, city, state_prefix, zip_code" +
                 " FROM zips ORDER BY city";
 
-        try{
-            conn = DriverManager.getConnection(host,user,password);
-            if(conn == null){
+        try {
+            conn = DriverManager.getConnection(host, user, password);
+            if (conn == null) {
                 System.out.println("Connection to database failed");
-            }else{
+            } else {
                 System.out.println("Connection to database successful");
             }
             stmt = conn.createStatement();//prepares packet of information to be sent
@@ -60,8 +67,8 @@ public class Main {
             ResultSetMetaData rsMetaData = rsp.getMetaData();
             ResultSetMetaData rsMetaDataDistance = rsd.getMetaData();
 
-            while(rsd.next()) {//primary lat and lon found here
-                while (rshu.next()){//housing units found here
+            while (rsd.next()) {//primary lat and lon found here
+                while (rshu.next()) {//housing units found here
                     if (rsp.next()) {//rest of data found here
                         //'IF' is important here because it cycles through this code once then gets the next
                         //rshu resultset values (housing units), 'WHILE' does not. (this is the fruit of hours of being stumped)
@@ -81,19 +88,31 @@ public class Main {
                         double distanceKM = place.distanceKM(lat, lon, lat2, lon2);
                         double distanceMiles = place.distanceMiles(lat, lon, lat2, lon2);
 
-                        //return places within the radius, this if goes into a loop of some kind that matches the zips
                         if (distanceMiles <= radius) {
-                            place place = new place(name, zip,state, housingunits, population, distanceKM, distanceMiles);//the placeholder "place" Object
-                            System.out.println(place);//prints out all places with toString
-                        }
+                            //the places in the radius.
 
+                            if (previousName.equals(name)) {
+                                //cities with the same name and diff zip get added together
+                                //adds up populations for a place with multiple zipcodes.
+                                population += previousPopulation;
+                                //if its the same place add the population and skip the print.
+                                //will have to add housing units as well,
+                                //do that later when you figure out structure of this
+                            }
+                            place place = new place(name, zip, state, housingunits, population, distanceKM, distanceMiles);//the placeholder "place" Object
+                            System.out.println(place);
+
+                        }
+                        previousName = name;
+                        previousPopulation = population;
+                        previousZip = zip;
                     }
                 }
             }
 
             conn.close();
 
-        }catch(SQLException e){
+        } catch (SQLException e) {
             //e.printStackTrace();
             System.err.println(e.getMessage());
             System.exit(1);
