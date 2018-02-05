@@ -111,6 +111,30 @@ public class place {
         this.distanceFromOriginMiles = distanceFromOrigin;
     }
 
+    public int getPopulation() {
+        return population;
+    }
+
+    public void setPopulation(int population) {
+        this.population = population;
+    }
+
+    public int getHousingunits() {
+        return housingunits;
+    }
+
+    public void setHousingunits(int housingunits) {
+        this.housingunits = housingunits;
+    }
+
+    public int getZipcode() {
+        return zipcode;
+    }
+
+    public void setZipcode(int zipcode) {
+        this.zipcode = zipcode;
+    }
+
     @Override
     public String toString() {
         return "Name: "+'\''+name+ '\'' + ", State: "+'\''+state + '\''+

@@ -3,7 +3,7 @@
 //CSC 346 Homework 02
 
 import java.sql.*;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
     static Connection conn;
@@ -22,8 +22,11 @@ public class Main {
 
     public static void main(String[] args) {
         String previousName = "";
+        String previousName2 = "";
         int previousPopulation = 0;
         int previousZip = 0;
+        String previousState = "";
+        ArrayList<place> placeList = new ArrayList<>();
 
         Scanner scan = new Scanner(System.in);
         String host = "jdbc:mysql://turing.cs.missouriwestern.edu:3306/misc";
@@ -91,23 +94,35 @@ public class Main {
                         if (distanceMiles <= radius) {
                             //the places in the radius.
 
-                            if (previousName.equals(name)) {
-                                //cities with the same name and diff zip get added together
+                            if (previousName.equals(name) && previousState.equals(state) && !(previousZip==zip)) {
                                 //adds up populations for a place with multiple zipcodes.
                                 population += previousPopulation;
-                                //if its the same place add the population and skip the print.
-                                //will have to add housing units as well,
-                                //do that later when you figure out structure of this
                             }
                             place place = new place(name, zip, state, housingunits, population, distanceKM, distanceMiles);//the placeholder "place" Object
-                            System.out.println(place);
-
+                            placeList.add(place);
                         }
                         previousName = name;
                         previousPopulation = population;
+                        previousState = state;
                         previousZip = zip;
                     }
                 }
+            }
+
+            for (int i = 0; i < placeList.size(); i++) {
+
+                place element = Collections.max(placeList, Comparator.comparingInt(place::getPopulation));
+                int maxPopulation = element.getPopulation();
+
+                if (placeList.get(i).name.equals(previousName2)) {
+                    if (placeList.get(i).population >= maxPopulation) {
+                        System.out.println(placeList.get(i));
+                    }
+
+                } else if (placeList.get(i).population > 0) {
+                    System.out.println(placeList.get(i));
+                }
+                previousName2 = placeList.get(i).name;
             }
 
             conn.close();
