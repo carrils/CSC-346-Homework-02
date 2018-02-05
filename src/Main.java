@@ -94,7 +94,7 @@ public class Main {
                         if (distanceMiles <= radius) {
                             //the places in the radius.
 
-                            if (previousName.equals(name) && previousState.equals(state) && !(previousZip==zip)) {
+                            if (previousName.equals(name) && previousState.equals(state) && !(previousZip == zip)) {
                                 //adds up populations for a place with multiple zipcodes.
                                 population += previousPopulation;
                             }
@@ -119,7 +119,8 @@ public class Main {
                         System.out.println(placeList.get(i));
                     }
 
-                } else if (placeList.get(i).population > 0) {
+                }
+                if (placeList.get(i).population > 0) {
                     System.out.println(placeList.get(i));
                 }
                 previousName2 = placeList.get(i).name;
