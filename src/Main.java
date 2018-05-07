@@ -12,14 +12,6 @@ public class Main {
     static ResultSet rshu;//resultset for housing unit variables
     static Statement stmt, stmt2, stmt3;
 
-    //to do list:
-    //solve multiple populations from same place
-    //solve multiple zipcodes returning back same place problem
-
-    //The 'Good enough' Corner:
-    //match housing units to their correct place.
-    //                  -> is this one even possible because theoretically they are never going to match
-
     public static void main(String[] args) {
         String previousName = "";
         String previousName2 = "";
@@ -73,8 +65,6 @@ public class Main {
             while (rsd.next()) {//primary lat and lon found here
                 while (rshu.next()) {//housing units found here
                     if (rsp.next()) {//rest of data found here
-                        //'IF' is important here because it cycles through this code once then gets the next
-                        //rshu resultset values (housing units), 'WHILE' does not. (this is the fruit of hours of being stumped)
                         String name = rsp.getString("city");
                         String state = rsp.getString("state");
                         double lat2 = rsp.getDouble("lat");//end lat
@@ -93,7 +83,6 @@ public class Main {
 
                         if (distanceMiles <= radius) {
                             //the places in the radius.
-
                             if (previousName.equals(name) && previousState.equals(state) && !(previousZip == zip)) {
                                 //adds up populations for a place with multiple zipcodes.
                                 population += previousPopulation;
@@ -110,17 +99,17 @@ public class Main {
             }
 
             for (int i = 0; i < placeList.size(); i++) {
-
-                place element = Collections.max(placeList, Comparator.comparingInt(place::getPopulation));
-                int maxPopulation = element.getPopulation();
-
                 if (placeList.get(i).name.equals(previousName2)) {
+                    //finding the max population of the places with same names, this implies they are summed up
+                    place element = Collections.max(placeList, Comparator.comparingInt(place::getPopulation));
+                    int maxPopulation = element.getPopulation();
+
                     if (placeList.get(i).population >= maxPopulation) {
                         System.out.println(placeList.get(i));
                     }
 
-                }
-                if (placeList.get(i).population > 0) {
+                }else if (placeList.get(i).population > 0) {
+                    // has to be greater than 0
                     System.out.println(placeList.get(i));
                 }
                 previousName2 = placeList.get(i).name;
